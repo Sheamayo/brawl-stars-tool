@@ -33,7 +33,6 @@ jobs:
         swiftc -target arm64-apple-ios${DEPLOYMENT_TARGET} \
           -sdk ${SDK_PATH} \
           -g -O -parse-as-library \
-          -emit-object \
           BrawlStarsTool.swift \
           -o BrawlStarsTool.o 2>&1 || {
             echo "Swift compilation failed. Creating stub dylib instead..."
