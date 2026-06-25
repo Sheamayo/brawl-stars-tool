@@ -1,0 +1,17 @@
+#!/bin/bash
+
+echo "🎮 Brawl Stars Tool - Setup"
+echo "============================"
+echo ""
+echo "⚠️  Note: Xcode Command Line Tools required"
+echo ""
+echo "Install (Mac only):"
+echo "   xcode-select --install"
+echo ""
+echo "Then run:"
+echo "   ./build_real.sh"
+echo ""
+echo "This will:"
+echo "   1. Compile BrawlStarsTool.swift with swiftc"
+echo "   2. Generate actual iOS dylib"
+echo "   3. Ready to embed"

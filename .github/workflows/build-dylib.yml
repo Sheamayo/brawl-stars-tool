@@ -1,0 +1,80 @@
+name: Build BrawlStarsTool dylib
+
+on:
+  push:
+    branches: [ main, master ]
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: macos-latest
+    
+    steps:
+    - uses: actions/checkout@v3
+    
+    - name: Setup Xcode
+      run: sudo xcode-select --switch /Applications/Xcode.app/Contents/Developer
+    
+    - name: Verify Swift & iOS SDK
+      run: |
+        swift --version
+        xcrun --sdk iphoneos --show-sdk-path
+    
+    - name: Compile dylib
+      run: |
+        # Set paths
+        DEPLOYMENT_TARGET="14.0"
+        SDK_PATH=$(xcrun --sdk iphoneos --show-sdk-path)
+        TOOLCHAIN_PATH=$(xcode-select --print-path)
+        
+        # Create object file
+        swiftc -target arm64-apple-ios${DEPLOYMENT_TARGET} \
+          -sdk ${SDK_PATH} \
+          -g -O -dynamic \
+          -Xcc -fno-objc-arc \
+          -parse-as-library \
+          BrawlStarsTool.swift \
+          -o BrawlStarsTool.o
+        
+        # Link into dylib
+        ld -dylib \
+          -arch arm64 \
+          -platform_version ios 14.0 14.0 \
+          -syslibroot ${SDK_PATH} \
+          -lSystem \
+          -lswiftCore \
+          -lswiftUIKit \
+          -lswiftObjectiveC \
+          -lswiftFoundation \
+          -lswiftCoreGraphics \
+          -lswiftCoreImage \
+          -lswiftVision \
+          BrawlStarsTool.o \
+          -o BrawlStarsTool.dylib
+        
+        # Verify
+        file BrawlStarsTool.dylib
+        nm BrawlStarsTool.dylib | grep BrawlStarsTool
+    
+    - name: Upload dylib artifact
+      uses: actions/upload-artifact@v3
+      with:
+        name: BrawlStarsTool-dylib
+        path: BrawlStarsTool.dylib
+        retention-days: 30
+    
+    - name: Create release on success
+      if: success()
+      uses: softprops/action-gh-release@v1
+      with:
+        files: BrawlStarsTool.dylib
+        tag_name: dylib-${{ github.run_number }}
+        body: |
+          BrawlStarsTool dylib build #${{ github.run_number }}
+          
+          Compiled with:
+          - Swift on macOS latest
+          - iOS Deployment Target: 14.0
+          - Architecture: arm64 (iPhone)
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

@@ -1,0 +1,38 @@
+🎮 Brawl Stars Tool - Ready to Use
+
+========================================
+1ステップで完成
+========================================
+
+./embed original_brawl_stars.ipa BrawlStarsTool.dylib output.ipa
+
+========================================
+例
+========================================
+
+./embed ~/Downloads/brawlstars.ipa BrawlStarsTool.dylib mod.ipa
+
+出力: mod.ipa
+
+========================================
+次のステップ
+========================================
+
+1. https://gbox.io へアクセス
+2. mod.ipa をアップロード
+3. Certificate メソッド選択
+4. 署名待機 (2-3分)
+5. ダウンロード
+6. iPhone にインストール
+7. Brawl Stars 起動
+8. パスワード: Ezstash0
+
+========================================
+ファイル
+========================================
+
+BrawlStarsTool.dylib    ← pre-built dylib
+embed                   ← IPA 埋め込み
+GUIDE.txt               ← このファイル
+
+========================================

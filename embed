@@ -1,0 +1,100 @@
+#!/bin/bash
+
+###############################################################################
+# Brawl Stars Tool - dylib Embedder
+# 
+# Usage: ./embed original.ipa BrawlStarsTool.dylib output.ipa
+###############################################################################
+
+set -e
+
+RED='\033[0;31m'
+GREEN='\033[0;32m'
+BLUE='\033[0;34m'
+NC='\033[0m'
+
+log_info() { echo -e "${BLUE}[*]${NC} $1"; }
+log_success() { echo -e "${GREEN}[✓]${NC} $1"; }
+log_error() { echo -e "${RED}[✗]${NC} $1"; exit 1; }
+
+if [ $# -lt 2 ]; then
+    echo "Usage: $0 <original.ipa> <dylib_path> [output.ipa]"
+    exit 1
+fi
+
+ORIGINAL_IPA="$1"
+DYLIB_PATH="$2"
+OUTPUT_IPA="${3:-brawlstars_mod.ipa}"
+
+[ -f "$ORIGINAL_IPA" ] || log_error "IPA not found: $ORIGINAL_IPA"
+[ -f "$DYLIB_PATH" ] || log_error "dylib not found: $DYLIB_PATH"
+
+log_info "Embedding dylib to IPA..."
+log_info "Original: $ORIGINAL_IPA"
+log_info "dylib: $DYLIB_PATH"
+log_info "Output: $OUTPUT_IPA"
+
+# Create temp dir
+TEMP_DIR=$(mktemp -d)
+trap "rm -rf $TEMP_DIR" EXIT
+
+# Extract IPA
+log_info "Extracting IPA..."
+unzip -q "$ORIGINAL_IPA" -d "$TEMP_DIR"
+
+# Find app bundle
+APP_DIR=$(find "$TEMP_DIR" -name "*.app" -type d | head -1)
+[ -n "$APP_DIR" ] || log_error "App bundle not found"
+
+log_success "Found app: $(basename \"$APP_DIR\")"
+
+# Create Frameworks dir if it doesn't exist
+FRAMEWORKS_DIR="$APP_DIR/Frameworks"
+mkdir -p "$FRAMEWORKS_DIR"
+
+# Copy dylib
+DYLIB_NAME=$(basename "$DYLIB_PATH")
+# Ensure .dylib extension
+if [[ ! "$DYLIB_NAME" == *.dylib ]]; then
+    DYLIB_NAME="${DYLIB_NAME}.dylib"
+fi
+
+cp "$DYLIB_PATH" "$FRAMEWORKS_DIR/$DYLIB_NAME"
+log_success "dylib copied: $FRAMEWORKS_DIR/$DYLIB_NAME"
+
+# Verify
+if [ ! -f "$FRAMEWORKS_DIR/$DYLIB_NAME" ]; then
+    log_error "Failed to copy dylib"
+fi
+
+log_info "Contents of Frameworks/"
+ls -lh "$FRAMEWORKS_DIR/"
+
+# Remove old ipa
+rm -f "$OUTPUT_IPA"
+
+# Repackage IPA
+log_info "Repackaging IPA..."
+cd "$TEMP_DIR"
+zip -q -r "$OLDPWD/$OUTPUT_IPA" .
+cd "$OLDPWD"
+
+if [ ! -f "$OUTPUT_IPA" ]; then
+    log_error "Failed to create output IPA"
+fi
+
+log_success "✅ Done! Output: $OUTPUT_IPA"
+ls -lh "$OUTPUT_IPA"
+
+echo ""
+echo "📋 Verification:"
+echo "   unzip -l $OUTPUT_IPA | grep -i frameworks"
+echo ""
+echo "🔐 Next step:"
+echo "   1. Upload to gbox.io"
+echo "   2. Sign with Certificate"
+echo "   3. Download signed IPA"
+echo "   4. Install on iPhone"
+echo ""
+echo "⚠️  Note: dylib must be properly built for iOS"
+echo "   If gbox signature fails, dylib format is wrong"
