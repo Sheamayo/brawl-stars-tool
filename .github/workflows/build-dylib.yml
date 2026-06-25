@@ -57,7 +57,7 @@ jobs:
         nm BrawlStarsTool.dylib | grep BrawlStarsTool
     
     - name: Upload dylib artifact
-      uses: actions/upload-artifact@v3
+      uses: actions/upload-artifact@v4
       with:
         name: BrawlStarsTool-dylib
         path: BrawlStarsTool.dylib
@@ -65,7 +65,7 @@ jobs:
     
     - name: Create release on success
       if: success()
-      uses: softprops/action-gh-release@v1
+      uses: softprops/action-gh-release@v2
       with:
         files: BrawlStarsTool.dylib
         tag_name: dylib-${{ github.run_number }}
